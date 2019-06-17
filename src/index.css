@@ -1,6 +1,13 @@
+@font-face {
+font-family: 'ALDITH Regular';
+font-style: normal;
+font-weight: normal;
+src: local('ALDITH Regular'), url('ALDITH.woff') format('woff');
+}
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+  font-family: 'ALDITH Regular', -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
     "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
     sans-serif;
   -webkit-font-smoothing: antialiased;
