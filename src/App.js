@@ -7,6 +7,8 @@ import Rank from './Components/Rank';
 import FaceRecognition from './Components/FaceRecognition/FaceRecognition';
 import Particles from 'react-particles-js';
 import Clarifai from 'clarifai';
+import Signin from './Components/Signin';
+import Register from './Components/Register';
 
 const particleConfig = {
       particles: {
@@ -61,7 +63,8 @@ class App extends React.Component {
     this.state = {
       input : "",
       imageUrl : "",
-      box : [defaultBox]
+      box : [defaultBox],
+      route : "signin"
     };
   }
 
@@ -83,16 +86,34 @@ class App extends React.Component {
       })
     .catch((err) => {console.log(err);$this.setState({box:[defaultBox]});});
   }
+
+  onRouteChange = (value) => {
+    this.setState({route:value});
+  }
   
   render() {
+    let page = (<Signin onRouteChange={this.onRouteChange}/>);
+    switch(this.state.route) {
+      case "register":
+        page = <Register onRouteChange={this.onRouteChange}/>;
+        break;
+      case "login":
+        page = (<div>
+                  <Navigation onRouteChange={this.onRouteChange}/>
+                  <Logo />
+                  <Rank />
+                  <ImageLinkFrom onInputChanged={this.onInputChanged} onButtonDetect={this.onButtonDetect}/>
+                  <FaceRecognition imageUrl={this.state.imageUrl} box={this.state.box}/>
+                </div>);
+        break;
+      default:
+        break;
+    }
+
     return (
       <div className="App">
         <Particles className='particles' params={particleConfig}/>
-        <Navigation />
-        <Logo />
-        <Rank />
-        <ImageLinkFrom onInputChanged={this.onInputChanged} onButtonDetect={this.onButtonDetect}/>
-        <FaceRecognition imageUrl={this.state.imageUrl} box={this.state.box}/>
+        {page}
       </div>
     );
   } 
