@@ -54,6 +54,29 @@ app.post('/register', (req, res) => {
 	else res.status(400).json("invalid registration form");
 });
 
+//Route Profile
+app.get('/profile/:id', (req, res) => {
+  const {id} = req.params;
+  if(Number.isInteger(Number(id)) && id <= database.users.length && id > 0) {
+  	res.json(database.users[id-1]);
+  }
+  else res.status(400).json("invalid user id");
+});
+
+//Route Image
+app.post('/image', (req, res) => {
+	const {id} = req.body;
+	let found = false;
+	database.users.forEach( user => {
+		if(user.id === id) {
+			found = true;
+			user.entries++;
+			return res.json(user.entries);
+		}
+	});
+	if(!found) res.status(400).json("invalid user id");
+});
+
 app.listen(3000);
 
 
