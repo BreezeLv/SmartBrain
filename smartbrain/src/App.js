@@ -68,6 +68,12 @@ class App extends React.Component {
     };
   }
 
+  componentDidMount() {
+    fetch('http://localhost:3000/')
+    .then(res=>res.json())
+    .then(console.log);
+  }
+
   onInputChanged = (event) => {
     this.setState({input:event.target.value});
   }

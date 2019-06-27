@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
+const cors = require('cors');
 
 const app = express();
 const saltRounds = 10;
@@ -11,7 +12,7 @@ const database = {
 			name: 'Bernard',
 			email: 'bernard@gmail.com',
 			password: 'bernard666',
-			hash: '',
+			hash: '$2b$10$r4maSHASKgEAMN2VsViuiePPif7QQYweZ0uIZffweCboOj4R63pKS',
 			entries: 0,
 			joined: new Date()
 		}
@@ -20,7 +21,7 @@ const database = {
 
 
 app.use(bodyParser.json());
-
+app.use(cors());
 
 //Route Root
 app.get('/', (req, res) => {
