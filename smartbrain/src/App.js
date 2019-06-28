@@ -92,12 +92,24 @@ class App extends React.Component {
     this.setState({imageUrl:this.state.input});
     clarifai.models.predict(Clarifai.FACE_DETECT_MODEL, this.state.input)
     .then((response) => {
-        $this.setState({
-          box : response.outputs[0].data.regions.map((box)=>{
-            return box.region_info.bounding_box;
+      // console.log(response);
+      if(response&&response.status.code===10000) { //response&&response.outputs[0].data
+        fetch("http://localhost:3000/image",{
+          method: 'PUT',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({
+            id : this.state.profile.id
           })
-        }, ()=>{console.log($this.state.box)});
-      })
+        })
+        .then((res) => res.json())
+        .then((data) => {this.setState(Object.assign(this.state.profile,{entries:data}))})
+      }
+      $this.setState({
+        box : response.outputs[0].data.regions.map((box)=>{
+          return box.region_info.bounding_box;
+        })
+      }, ()=>{console.log($this.state.box)});
+    })
     .catch((err) => {console.log(err);$this.setState({box:[defaultBox]});});
   }
 
