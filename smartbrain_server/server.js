@@ -31,14 +31,14 @@ app.get('/', (req, res) => {
 //Route Signin
 app.post('/signin', (req, res) => {
 	const {email, password} = req.body;
-	let flag = false;
+	let flag = -1;
 
-	for(user of database.users) {
-		if(email===user.email) {flag = true;break;}
+	for(i in database.users) {
+		if(email===database.users[i].email) {flag = i;break;}
 	}
-	if(flag) {
-		bcrypt.compare(password, user.hash, function(err, match) {
-		    if(match) res.json('success');
+	if(flag!==-1) {
+		bcrypt.compare(password, database.users[i].hash, function(err, match) {
+		    if(match) res.json(database.users[flag]);
 		    else res.status(400).json("error logging in");
 		});
 	}
@@ -52,7 +52,7 @@ app.post('/register', (req, res) => {
 	if(name&&email&&password&&email.includes('@')) {
 		bcrypt.hash(password, saltRounds, function(err, hash) {
 			if(err) console.log(err);
-		  	database.users.push({
+			let newUser = {
 				id: database.users.length + 1,
 				name: name,
 				email: email,
@@ -60,9 +60,10 @@ app.post('/register', (req, res) => {
 				hash: hash,
 				entries: 0,
 				joined: new Date()
-			});
+			};
+		  	database.users.push(newUser);
 			// res.json('success');
-			res.json(database.users);
+			res.json(newUser);
 		});
 	}
 	else res.status(400).json("invalid registration form");

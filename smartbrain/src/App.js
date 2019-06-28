@@ -64,14 +64,22 @@ class App extends React.Component {
       input : "",
       imageUrl : "",
       box : [defaultBox],
-      route : "signin"
+      route : "signin",
+      profile : {
+        id: '',
+        name: '',
+        email: '',
+        entries: 0,
+        joined: ''
+      }
     };
   }
 
   componentDidMount() {
-    fetch('http://localhost:3000/')
-    .then(res=>res.json())
-    .then(console.log);
+    //api test
+    // fetch('http://localhost:3000/')
+    // .then(res=>res.json())
+    // .then(console.log);
   }
 
   onInputChanged = (event) => {
@@ -96,18 +104,28 @@ class App extends React.Component {
   onRouteChange = (value) => {
     this.setState({route:value});
   }
+
+  loadUserProfile = (user) => {
+    this.setState({profile:{
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        entries: user.entries,
+        joined: user.joined
+      }}, ()=>{console.log(this.state.profile)});
+  }
   
   render() {
-    let page = (<Signin onRouteChange={this.onRouteChange}/>);
+    let page = (<Signin onRouteChange={this.onRouteChange} loadUserProfile={this.loadUserProfile}/>);
     switch(this.state.route) {
       case "register":
-        page = <Register onRouteChange={this.onRouteChange}/>;
+        page = <Register onRouteChange={this.onRouteChange} loadUserProfile={this.loadUserProfile}/>;
         break;
       case "login":
         page = (<div>
                   <Navigation onRouteChange={this.onRouteChange}/>
                   <Logo />
-                  <Rank />
+                  <Rank name={this.state.profile.name} entries={this.state.profile.entries}/>
                   <ImageLinkFrom onInputChanged={this.onInputChanged} onButtonDetect={this.onButtonDetect}/>
                   <FaceRecognition imageUrl={this.state.imageUrl} box={this.state.box}/>
                 </div>);

@@ -18,11 +18,13 @@ class Signin extends React.Component {
       })
     })//.then((res) => {if(res.status==200) this.props.onRouteChange("login");});
     .then((res) => res.json())
-    .then((data) => {
-      if(data === "success") this.props.onRouteChange("login");
+    .then((user) => {
+      if(user.id) {
+        this.props.loadUserProfile(user);
+        this.props.onRouteChange("login");
+      }
       else console.log("Wrong Email&Password Combination!");
     });
-    
   }
 
   render() {
