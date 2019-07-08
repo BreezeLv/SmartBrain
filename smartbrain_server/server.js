@@ -2,6 +2,20 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const cors = require('cors');
+const knex = require('knex');
+
+const pgdb = knex({
+  client: 'pg',
+  connection: {
+    host : '127.0.0.1',
+    user : 'breezelv',
+    password : '',
+    database : 'smart-brain'
+  }
+});
+
+//test db connection
+// console.log(pgdb.select('*').from('users'));
 
 const app = express();
 const saltRounds = 10;
@@ -48,25 +62,53 @@ app.post('/signin', (req, res) => {
 //Route Register
 app.post('/register', (req, res) => {
 	const {name, email, password} = req.body;
+	var errorCode = 0; //0 for no error; 1 for Register Error
 
 	if(name&&email&&password&&email.includes('@')) {
+
+		let newUser = {
+			name: name,
+			email: email,
+			entries: 0,
+			joined: new Date()
+		};
+
+		pgdb('users')
+	  	.returning('*')
+	  	.insert(newUser)
+	  	.then(console.log)
+	  	.catch(err=>{errorCode=1;});
+	  	if(errorCode) {res.status(400).json("Unable to Register");return;}
+
 		bcrypt.hash(password, saltRounds, function(err, hash) {
-			if(err) console.log(err);
-			let newUser = {
-				id: database.users.length + 1,
-				name: name,
+			if(err) {
+				console.log(err);
+				res.status(500).json("Unable to Hash PSW");
+				return;
+			}
+			
+			let newLogin = {
 				email: email,
-				password: password,
-				hash: hash,
-				entries: 0,
-				joined: new Date()
+				hash: hash
 			};
-		  	database.users.push(newUser);
-			// res.json('success');
-			res.json(newUser);
+
+		  	pgdb('login')
+		  	.returning('*')
+		  	.insert(newLogin)
+		  	.then(console.log)
+		  	.catch(err=>{errorCode=1;});
+
+		  	if(errorCode) {
+		  		pgdb('users')
+				.where('email', email)
+				.del()
+		  		res.status(400).json("Unable to Register");
+		  		return;
+		  	}
+			else res.json(newUser);
 		});
 	}
-	else res.status(400).json("invalid registration form");
+	else res.status(400).json("Invalid registration form");
 });
 
 //Route Profile
