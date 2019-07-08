@@ -62,7 +62,7 @@ app.post('/signin', (req, res) => {
 //Route Register
 app.post('/register', (req, res) => {
 	const {name, email, password} = req.body;
-	var errorCode = 0; //0 for no error; 1 for Register Error
+	// var errorCode = 0; //0 for no error; 1 for Register Error
 
 	if(name&&email&&password&&email.includes('@')) {
 
@@ -73,40 +73,63 @@ app.post('/register', (req, res) => {
 			joined: new Date()
 		};
 
-		pgdb('users')
-	  	.returning('*')
-	  	.insert(newUser)
-	  	.then(console.log)
-	  	.catch(err=>{errorCode=1;});
-	  	if(errorCode) {res.status(400).json("Unable to Register");return;}
+		let newLogin = {
+			email: email,
+			hash: bcrypt.hashSync(password,saltRounds)
+		};
 
-		bcrypt.hash(password, saltRounds, function(err, hash) {
-			if(err) {
-				console.log(err);
-				res.status(500).json("Unable to Hash PSW");
-				return;
-			}
-			
-			let newLogin = {
-				email: email,
-				hash: hash
-			};
-
-		  	pgdb('login')
-		  	.returning('*')
-		  	.insert(newLogin)
-		  	.then(console.log)
-		  	.catch(err=>{errorCode=1;});
-
-		  	if(errorCode) {
-		  		pgdb('users')
-				.where('email', email)
-				.del()
-		  		res.status(400).json("Unable to Register");
-		  		return;
-		  	}
-			else res.json(newUser);
+		// Using trx as a transaction object:
+		pgdb.transaction(trx => {
+			pgdb.insert(newUser)
+			.into('users')
+			.transacting(trx)
+			.then(users => {
+				return pgdb('login').insert(newLogin).transacting(trx);
+			})
+		    .then(logins=>{trx.commit();res.json(newUser);})
+		    .catch(trx.rollback);
+		})
+		// .then(console.log("transaction done"))
+		.catch(function(err) {
+			console.log("Transaction Failed");
+		  	res.status(400).json("Unable to Register");
 		});
+
+		//Async-W/o-Transaction
+		// pgdb('users')
+	 //  	.returning('*')
+	 //  	.insert(newUser)
+	 //  	.then(console.log)
+	 //  	.catch(err=>{errorCode=1;});
+	 //  	if(errorCode) {res.status(400).json("Unable to Register");return;}
+
+		// bcrypt.hash(password, saltRounds, function(err, hash) {
+		// 	if(err) {
+		// 		console.log(err);
+		// 		res.status(500).json("Unable to Hash PSW");
+		// 		return;
+		// 	}
+			
+		// 	let newLogin = {
+		// 		email: email,
+		// 		hash: hash
+		// 	};
+
+		//   	pgdb('login')
+		//   	.returning('*')
+		//   	.insert(newLogin)
+		//   	.then(console.log)
+		//   	.catch(err=>{errorCode=1;});
+
+		//   	if(errorCode) {
+		//   		pgdb('users')
+		// 		.where('email', email)
+		// 		.del()
+		//   		res.status(400).json("Unable to Register");
+		//   		return;
+		//   	}
+		// 	else res.json(newUser);
+		// });
 	}
 	else res.status(400).json("Invalid registration form");
 });
