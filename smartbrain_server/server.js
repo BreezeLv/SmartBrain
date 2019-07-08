@@ -14,49 +14,38 @@ const pgdb = knex({
   }
 });
 
-//test db connection
-// console.log(pgdb.select('*').from('users'));
-
 const app = express();
 const saltRounds = 10;
-const database = {
-	users: [
-		{
-			id: '1',
-			name: 'Bernard',
-			email: 'bernard@gmail.com',
-			password: 'bernard666',
-			hash: '$2b$10$r4maSHASKgEAMN2VsViuiePPif7QQYweZ0uIZffweCboOj4R63pKS',
-			entries: 0,
-			joined: new Date()
-		}
-	]
-};
-
 
 app.use(bodyParser.json());
 app.use(cors());
 
 //Route Root
 app.get('/', (req, res) => {
-  res.send(database.users);
+	pgdb.select('*').from('users')
+	.then(users=>res.send(users))
+	.catch(res.status(500).json("error connecting to the database"))
 });
 
 //Route Signin
 app.post('/signin', (req, res) => {
 	const {email, password} = req.body;
-	let flag = -1;
 
-	for(i in database.users) {
-		if(email===database.users[i].email) {flag = i;break;}
-	}
-	if(flag!==-1) {
-		bcrypt.compare(password, database.users[i].hash, function(err, match) {
-		    if(match) res.json(database.users[flag]);
-		    else res.status(400).json("error logging in");
+	pgdb.select('email','hash').from('login').where('email','=',email)
+	.then(users => {
+		if(users.length==0) throw new Error();
+		bcrypt.compare(password, users[0].hash, function(err, match) {
+		    if(match) {
+		    	pgdb.select('*').from('users').where('email',email)
+		    	.then(users=>{
+		    		res.json(users[0]);
+		    	})
+		    	.catch(err => res.status(400).json("error logging in"))
+		    }
+		    else res.status(400).json("wrong credentials");
 		});
-	}
-	else res.status(400).json("error logging in");
+	})
+	.catch(err=>res.status(400).json("wrong credentials"))
 });
 
 //Route Register
@@ -95,7 +84,7 @@ app.post('/register', (req, res) => {
 		  	res.status(400).json("Unable to Register");
 		});
 
-		//Async-W/o-Transaction
+		//Async-W/o-Transaction:
 		// pgdb('users')
 	 //  	.returning('*')
 	 //  	.insert(newUser)
