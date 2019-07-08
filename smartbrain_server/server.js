@@ -114,8 +114,12 @@ app.post('/register', (req, res) => {
 //Route Profile
 app.get('/profile/:id', (req, res) => {
   const {id} = req.params;
-  if(Number.isInteger(Number(id)) && id <= database.users.length && id > 0) {
-  	res.json(database.users[id-1]);
+  if(Number.isInteger(Number(id)) && id >= 0) {
+  	pgdb('users').select('*').where({id:id})
+  	.then(user=>{
+  		if(user.length==0) res.status(400).json("User doesn't exist");
+  		else res.json(user[0]);
+  	}).catch(err=>{res.status(400).json("error getting user");});
   }
   else res.status(400).json("invalid user id");
 });
@@ -123,15 +127,13 @@ app.get('/profile/:id', (req, res) => {
 //Route Image
 app.put('/image', (req, res) => {
 	const {id} = req.body;
-	let found = false;
-	database.users.forEach( user => {
-		if(user.id === id) {
-			found = true;
-			user.entries++;
-			return res.json(user.entries);
-		}
-	});
-	if(!found) res.status(400).json("invalid user id");
+	pgdb('users').where('id','=',id).increment('entries',1)
+	.returning('entries')
+	.then(entries=>{
+		if(entries.length==0) res.status(400).json("User doesn't exist");
+  		else res.json(entries[0]);
+	})
+	.catch(err=>{res.status(400).json("Unable to get entries");});
 });
 
 app.listen(3000);
