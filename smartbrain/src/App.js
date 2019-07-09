@@ -56,6 +56,7 @@ const clarifai = new Clarifai.App({
 });
 
 const defaultBox = {top_row:0,bottom_row:0,left_col:0,right_col:0};
+const defaultProfile = {id: '',name: '',email: '',entries: 0,joined: ''};
 
 class App extends React.Component {
   constructor() {
@@ -65,13 +66,7 @@ class App extends React.Component {
       imageUrl : "",
       box : [defaultBox],
       route : "signin",
-      profile : {
-        id: '',
-        name: '',
-        email: '',
-        entries: 0,
-        joined: ''
-      }
+      profile : defaultProfile
     };
   }
 
@@ -114,6 +109,10 @@ class App extends React.Component {
   }
 
   onRouteChange = (value) => {
+    if(value==='signin') {
+      //clear the cache
+      this.setState({input:"",imageUrl:"",box:[defaultBox],profile:defaultProfile});
+    }
     this.setState({route:value});
   }
 

@@ -71,8 +71,10 @@ app.post('/register', (req, res) => {
 		pgdb.transaction(trx => {
 			pgdb.insert(newUser)
 			.into('users')
+			.returning('*')
 			.transacting(trx)
 			.then(users => {
+				newUser = users[0];
 				return pgdb('login').insert(newLogin).transacting(trx);
 			})
 		    .then(logins=>{trx.commit();res.json(newUser);})
