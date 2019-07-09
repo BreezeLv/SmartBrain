@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const cors = require('cors');
 const knex = require('knex');
+const Clarifai = require('clarifai');
 
 const pgdb = knex({
   client: 'pg',
@@ -12,6 +13,10 @@ const pgdb = knex({
     password : '',
     database : 'smart-brain'
   }
+});
+
+const clarifai = new Clarifai.App({
+  apiKey: "1c7cb4f2b4e14d7f997f2057f1bd7966"
 });
 
 const app = express();
@@ -148,6 +153,13 @@ app.put('/image', (req, res) => {
   		else res.json(entries[0]);
 	})
 	.catch(err=>{res.status(400).json("Unable to get entries");});
+});
+
+//Clarifai API Capsulation
+app.post('/detect',(req, res) => {
+	clarifai.models.predict(Clarifai.FACE_DETECT_MODEL, req.body.input)
+	.then(data=>res.json(data))
+	.catch(err=>res.status(400).json(err))
 });
 
 app.listen(3000);

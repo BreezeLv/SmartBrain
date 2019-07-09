@@ -6,7 +6,6 @@ import ImageLinkFrom from './Components/ImageLinkFrom/ImageLinkFrom';
 import Rank from './Components/Rank';
 import FaceRecognition from './Components/FaceRecognition/FaceRecognition';
 import Particles from 'react-particles-js';
-import Clarifai from 'clarifai';
 import Signin from './Components/Signin';
 import Register from './Components/Register';
 
@@ -51,10 +50,6 @@ const particleConfig = {
         }
       };
 
-const clarifai = new Clarifai.App({
-  apiKey: "1c7cb4f2b4e14d7f997f2057f1bd7966"
-});
-
 const defaultBox = {top_row:0,bottom_row:0,left_col:0,right_col:0};
 const defaultProfile = {id: '',name: '',email: '',entries: 0,joined: ''};
 
@@ -85,7 +80,14 @@ class App extends React.Component {
     let $this = this;
     //https://samples.clarifai.com/face-det.jpg
     this.setState({imageUrl:this.state.input});
-    clarifai.models.predict(Clarifai.FACE_DETECT_MODEL, this.state.input)
+    fetch("http://localhost:3000/detect",{
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        input : this.state.input
+      })
+    })
+    .then(res=>res.json())
     .then((response) => {
       // console.log(response);
       if(response&&response.status.code===10000) { //response&&response.outputs[0].data
